@@ -1,0 +1,110 @@
+<?php
+
+namespace App\Http\Controllers\Admin;
+
+use App\Http\Controllers\Controller;
+use App\Models\Product;
+use Illuminate\Http\Request;
+use Illuminate\Support\Str;
+
+class ProductController extends Controller
+{
+    public function index(Request $request)
+    {
+        $query = Product::query();
+
+        if ($request->filled('search')) {
+            $query->where('name', 'like', '%' . $request->search . '%');
+        }
+        if ($request->filled('category')) {
+            $query->where('category', $request->category);
+        }
+
+        $products = $query->orderBy('created_at', 'desc')->paginate(15);
+        $categories = ['egrek' => 'Egrek', 'dodos' => 'Dodos', 'telescopic_pole' => 'Gagang Teleskopik'];
+
+        return view('admin.products.index', compact('products', 'categories'));
+    }
+
+    public function create()
+    {
+        $categories = ['egrek' => 'Egrek', 'dodos' => 'Dodos', 'telescopic_pole' => 'Gagang Teleskopik'];
+        return view('admin.products.create', compact('categories'));
+    }
+
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'name'           => 'required|string|max:255',
+            'category'       => 'required|in:egrek,dodos,telescopic_pole',
+            'description'    => 'required|string',
+            'specifications' => 'nullable|string',
+            'price'          => 'required|numeric|min:0',
+            'stock'          => 'required|integer|min:0',
+            'unit'           => 'required|string|max:20',
+            'weight'         => 'nullable|string|max:50',
+            'material'       => 'nullable|string|max:100',
+            'image'          => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+            'is_active'      => 'boolean',
+        ]);
+
+        $validated['slug'] = Str::slug($validated['name']) . '-' . Str::random(5);
+        $validated['is_active'] = $request->boolean('is_active');
+
+        if ($request->hasFile('image')) {
+            $validated['image'] = $request->file('image')->store('products', 'public');
+        }
+
+        Product::create($validated);
+
+        return redirect()->route('admin.products.index')
+            ->with('success', 'Produk berhasil ditambahkan.');
+    }
+
+    public function edit(Product $product)
+    {
+        $categories = ['egrek' => 'Egrek', 'dodos' => 'Dodos', 'telescopic_pole' => 'Gagang Teleskopik'];
+        return view('admin.products.edit', compact('product', 'categories'));
+    }
+
+    public function update(Request $request, Product $product)
+    {
+        $validated = $request->validate([
+            'name'           => 'required|string|max:255',
+            'category'       => 'required|in:egrek,dodos,telescopic_pole',
+            'description'    => 'required|string',
+            'specifications' => 'nullable|string',
+            'price'          => 'required|numeric|min:0',
+            'stock'          => 'required|integer|min:0',
+            'unit'           => 'required|string|max:20',
+            'weight'         => 'nullable|string|max:50',
+            'material'       => 'nullable|string|max:100',
+            'image'          => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+            'is_active'      => 'boolean',
+        ]);
+
+        $validated['is_active'] = $request->boolean('is_active');
+
+        if ($request->hasFile('image')) {
+            $validated['image'] = $request->file('image')->store('products', 'public');
+        }
+
+        $product->update($validated);
+
+        return redirect()->route('admin.products.index')
+            ->with('success', 'Produk berhasil diperbarui.');
+    }
+
+    public function destroy(Product $product)
+    {
+        $product->delete();
+        return back()->with('success', 'Produk berhasil dihapus.');
+    }
+
+    public function updateStock(Request $request, Product $product)
+    {
+        $request->validate(['stock' => 'required|integer|min:0']);
+        $product->update(['stock' => $request->stock]);
+        return back()->with('success', 'Stok produk berhasil diperbarui.');
+    }
+}
