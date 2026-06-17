@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Order;
-use App\Models\PaymentConfirmation;
 use Illuminate\Http\Request;
 
 class OrderController extends Controller
@@ -31,17 +30,22 @@ class OrderController extends Controller
 
     public function show(Order $order)
     {
-        $order->load(['user', 'items.product', 'paymentConfirmation']);
+        $order->load(['user', 'items.product']);
         return view('admin.orders.show', compact('order'));
     }
 
     public function updateStatus(Request $request, Order $order)
     {
         $request->validate([
-            'status' => 'required|in:pending,confirmed,diproses,dikirim,selesai,cancelled',
+            'status'          => 'required|in:pending,confirmed,diproses,dikirim,selesai,cancelled',
+            'tracking_number' => 'nullable|required_if:status,dikirim|string|max:100',
         ]);
 
         $data = ['status' => $request->status];
+
+        if ($request->filled('tracking_number')) {
+            $data['tracking_number'] = $request->tracking_number;
+        }
 
         if ($request->status === 'dikirim' && !$order->shipped_at) {
             $data['shipped_at'] = now();
@@ -55,29 +59,54 @@ class OrderController extends Controller
         return back()->with('success', 'Status pesanan berhasil diperbarui.');
     }
 
-    public function confirmPayment(Request $request, $confirmationId)
+    /**
+     * Check payment status manually from Midtrans API (Admin)
+     */
+    public function checkPaymentStatus(Order $order)
     {
-        $request->validate([
-            'action'      => 'required|in:approve,reject',
-            'admin_notes' => 'nullable|string',
-        ]);
+        try {
+            \Midtrans\Config::$serverKey    = config('services.midtrans.server_key');
+            \Midtrans\Config::$isProduction = config('services.midtrans.is_production');
 
-        $confirmation = PaymentConfirmation::with('order')->findOrFail($confirmationId);
+            // Fetch status directly from Midtrans API using midtrans_order_id (fallback to order_number)
+            $midtransId = $order->midtrans_order_id ?: $order->order_number;
+            $status = \Midtrans\Transaction::status($midtransId);
 
-        if ($request->action === 'approve') {
-            $confirmation->update(['status' => 'approved', 'admin_notes' => $request->admin_notes]);
-            $confirmation->order->update([
-                'payment_status' => 'paid',
-                'status'         => 'confirmed',
-                'paid_at'        => now(),
-            ]);
-            $msg = 'Pembayaran berhasil dikonfirmasi.';
-        } else {
-            $confirmation->update(['status' => 'rejected', 'admin_notes' => $request->admin_notes]);
-            $confirmation->order->update(['payment_status' => 'unpaid']);
-            $msg = 'Konfirmasi pembayaran ditolak.';
+            $transactionStatus = $status->transaction_status ?? null;
+            $paymentType       = $status->payment_type ?? null;
+
+            if ($transactionStatus === 'capture') {
+                if ($paymentType === 'credit_card' && ($status->fraud_status ?? '') === 'challenge') {
+                    $order->update(['payment_status' => 'pending_confirmation']);
+                } else {
+                    $order->update([
+                        'payment_status'           => 'paid',
+                        'status'                   => 'confirmed',
+                        'paid_at'                  => now(),
+                        'midtrans_transaction_id'  => $status->transaction_id ?? null,
+                    ]);
+                }
+            } elseif ($transactionStatus === 'settlement') {
+                $order->update([
+                    'payment_status'          => 'paid',
+                    'status'                  => 'confirmed',
+                    'paid_at'                 => now(),
+                    'midtrans_transaction_id' => $status->transaction_id ?? null,
+                ]);
+            } elseif ($transactionStatus === 'pending') {
+                $order->update(['payment_status' => 'pending_confirmation']);
+            } elseif (in_array($transactionStatus, ['deny', 'expire', 'cancel'])) {
+                $order->update([
+                    'payment_status' => 'failed',
+                    'status'         => 'cancelled',
+                ]);
+            }
+
+            return back()->with('success', 'Status pembayaran berhasil diperbarui: ' . strtoupper($order->payment_status));
+
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Admin check payment status error: ' . $e->getMessage());
+            return back()->with('error', 'Gagal memverifikasi status pembayaran ke Midtrans: ' . $e->getMessage());
         }
-
-        return back()->with('success', $msg);
     }
 }

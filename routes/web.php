@@ -9,6 +9,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\OrderController;
+use App\Http\Controllers\TrackingController;
 use Illuminate\Support\Facades\Route;
 
 // ── Public Routes ──────────────────────────────────────────────────────────────
@@ -17,6 +18,10 @@ Route::get('/katalog', [HomeController::class, 'catalog'])->name('catalog');
 Route::get('/produk/{slug}', [HomeController::class, 'productDetail'])->name('product.detail');
 Route::get('/tentang-kami', [HomeController::class, 'about'])->name('about');
 Route::get('/kontak', [HomeController::class, 'contact'])->name('contact');
+
+// Midtrans webhook — exempt from CSRF (already handled via signature verification)
+Route::post('/midtrans/callback', [OrderController::class, 'midtransCallback'])
+    ->withoutMiddleware([\App\Http\Middleware\VerifyCsrfToken::class]);
 
 // ── Auth Routes ────────────────────────────────────────────────────────────────
 Route::middleware('guest')->group(function () {
@@ -40,8 +45,18 @@ Route::middleware('auth')->group(function () {
     Route::post('/checkout', [OrderController::class, 'placeOrder'])->name('order.place');
     Route::get('/pesanan', [OrderController::class, 'history'])->name('orders.history');
     Route::get('/pesanan/{id}', [OrderController::class, 'detail'])->name('orders.detail');
-    Route::get('/pesanan/{id}/konfirmasi-bayar', [OrderController::class, 'showConfirmPayment'])->name('orders.confirm-payment');
-    Route::post('/pesanan/{id}/konfirmasi-bayar', [OrderController::class, 'submitConfirmPayment'])->name('orders.submit-confirm-payment');
+
+    // Refresh snap token for pending/unpaid orders (resume payment)
+    Route::post('/pesanan/{order}/refresh-token', [OrderController::class, 'refreshSnapToken'])->name('orders.refresh-token');
+
+    // Check payment status manually from Midtrans
+    Route::post('/pesanan/{order}/check-status', [OrderController::class, 'checkPaymentStatus'])->name('orders.check-status');
+
+    // Complete order (user confirms package receipt)
+    Route::post('/pesanan/{order}/complete', [OrderController::class, 'completeOrder'])->name('orders.complete');
+
+    // Live Tracking
+    Route::get('/pesanan/{order}/lacak', [TrackingController::class, 'track'])->name('orders.track');
 });
 
 // ── Admin Routes ───────────────────────────────────────────────────────────────
@@ -61,7 +76,8 @@ Route::middleware(['auth', \App\Http\Middleware\AdminMiddleware::class])
         Route::get('pesanan', [AdminOrderController::class, 'index'])->name('orders.index');
         Route::get('pesanan/{order}', [AdminOrderController::class, 'show'])->name('orders.show');
         Route::patch('pesanan/{order}/status', [AdminOrderController::class, 'updateStatus'])->name('orders.update-status');
-        Route::post('konfirmasi-bayar/{id}', [AdminOrderController::class, 'confirmPayment'])->name('orders.confirm-payment');
+        Route::post('pesanan/{order}/check-status', [AdminOrderController::class, 'checkPaymentStatus'])->name('orders.check-status');
+        Route::get('pesanan/{order}/lacak', [TrackingController::class, 'trackAdmin'])->name('orders.track-admin');
 
         // Customers
         Route::get('pelanggan', [AdminCustomerController::class, 'index'])->name('customers.index');

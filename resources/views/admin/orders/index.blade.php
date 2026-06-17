@@ -19,7 +19,7 @@
         </select>
         <select name="payment_status" class="px-3 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 bg-white">
             <option value="">Semua Pembayaran</option>
-            @foreach(['unpaid'=>'Belum Bayar','pending_confirmation'=>'Menunggu Konfirmasi','paid'=>'Lunas','failed'=>'Gagal'] as $v=>$l)
+            @foreach(['unpaid'=>'Belum Bayar','pending_confirmation'=>'Menunggu Pembayaran','paid'=>'Lunas','failed'=>'Gagal'] as $v=>$l)
             <option value="{{ $v }}" {{ request('payment_status')===$v?'selected':'' }}>{{ $l }}</option>
             @endforeach
         </select>
@@ -45,8 +45,21 @@
             <tbody class="divide-y divide-slate-50">
                 @forelse($orders as $order)
                 @php
-                $sc = match($order->status) {'pending'=>'bg-yellow-100 text-yellow-700','confirmed'=>'bg-blue-100 text-blue-700','diproses'=>'bg-indigo-100 text-indigo-700','dikirim'=>'bg-purple-100 text-purple-700','selesai'=>'bg-green-100 text-green-700','cancelled'=>'bg-red-100 text-red-700',default=>'bg-slate-100 text-slate-600'};
-                $pc = match($order->payment_status) {'paid'=>'bg-green-100 text-green-700','pending_confirmation'=>'bg-orange-100 text-orange-700','unpaid'=>'bg-red-100 text-red-700',default=>'bg-slate-100 text-slate-600'};
+                $statusColorClass = match($order->status_color) {
+                    'yellow' => 'bg-yellow-100 text-yellow-700',
+                    'blue' => 'bg-blue-100 text-blue-700',
+                    'indigo' => 'bg-indigo-100 text-indigo-700',
+                    'purple' => 'bg-purple-100 text-purple-700',
+                    'green' => 'bg-green-100 text-green-700',
+                    'red' => 'bg-red-100 text-red-700',
+                    default => 'bg-slate-100 text-slate-600'
+                };
+                $pc = match($order->payment_status) {
+                    'paid' => 'bg-green-100 text-green-700',
+                    'pending_confirmation' => 'bg-orange-100 text-orange-700',
+                    'unpaid' => 'bg-red-100 text-red-700',
+                    default => 'bg-slate-100 text-slate-600'
+                };
                 @endphp
                 <tr class="hover:bg-slate-50/50 transition-colors">
                     <td class="px-6 py-3.5 font-mono font-semibold text-slate-700 text-xs">{{ $order->order_number }}</td>
@@ -60,7 +73,18 @@
                         </div>
                     </td>
                     <td class="px-6 py-3.5 font-bold text-slate-800">Rp {{ number_format($order->total_amount,0,',','.') }}</td>
-                    <td class="px-6 py-3.5"><span class="text-xs font-semibold px-2 py-1 rounded-full {{ $sc }}">{{ $order->status_label }}</span></td>
+                    <td class="px-6 py-3.5">
+                        <span class="text-xs font-semibold px-2 py-1 rounded-full {{ $statusColorClass }}">{{ $order->status_label }}</span>
+                        @if($order->status === 'dikirim' && $order->tracking_number)
+                        <div class="mt-1.5">
+                            <a href="{{ route('admin.orders.track-admin', $order->id) }}"
+                               class="inline-flex items-center gap-1 text-[10px] font-bold text-indigo-600 hover:text-indigo-800 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-100 transition-colors"
+                               title="Lacak Resi: {{ $order->tracking_number }}">
+                                <i class="fa-solid fa-truck text-[9px]"></i> Lacak: {{ Str::limit($order->tracking_number, 10) }}
+                            </a>
+                        </div>
+                        @endif
+                    </td>
                     <td class="px-6 py-3.5"><span class="text-xs font-semibold px-2 py-1 rounded-full {{ $pc }}">{{ $order->payment_status_label }}</span></td>
                     <td class="px-6 py-3.5 text-slate-500 text-xs">{{ $order->created_at->format('d M Y, H:i') }}</td>
                     <td class="px-6 py-3.5">

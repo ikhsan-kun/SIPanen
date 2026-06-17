@@ -4,11 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Models\Order;
 use App\Models\OrderItem;
-use App\Models\PaymentConfirmation;
 use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class OrderController extends Controller
 {
@@ -40,7 +40,6 @@ class OrderController extends Controller
             'shipping_province'    => 'required|string|max:100',
             'shipping_postal_code' => 'required|string|max:10',
             'notes'                => 'nullable|string',
-            'payment_method'       => 'required|in:transfer,midtrans',
         ]);
 
         try {
@@ -57,7 +56,7 @@ class OrderController extends Controller
                 $subtotal += $product->price * $item['quantity'];
             }
 
-            $shippingCost = 0; // simplified
+            $shippingCost = 0;
             $total        = $subtotal + $shippingCost;
 
             $order = Order::create([
@@ -65,7 +64,7 @@ class OrderController extends Controller
                 'subtotal'             => $subtotal,
                 'shipping_cost'        => $shippingCost,
                 'total_amount'         => $total,
-                'payment_method'       => $validated['payment_method'],
+                'payment_method'       => 'midtrans',
                 'recipient_name'       => $validated['recipient_name'],
                 'recipient_phone'      => $validated['recipient_phone'],
                 'shipping_address'     => $validated['shipping_address'],
@@ -87,16 +86,89 @@ class OrderController extends Controller
                 $product->decrement('stock', $item['quantity']);
             }
 
+            // Generate Midtrans Snap Token with a unique midtrans_order_id to prevent sandbox key/order collision
+            $midtransOrderId = $order->order_number . '-' . time();
+            $snapToken = $this->generateSnapToken($order, $midtransOrderId);
+            if ($snapToken) {
+                $order->update([
+                    'midtrans_snap_token' => $snapToken,
+                    'midtrans_order_id'   => $midtransOrderId,
+                ]);
+            }
+
             DB::commit();
             session()->forget('cart');
 
             return redirect()->route('orders.detail', $order->id)
-                ->with('success', 'Pesanan berhasil dibuat! Silakan lakukan pembayaran.');
+                ->with('success', 'Pesanan berhasil dibuat! Silakan selesaikan pembayaran.');
 
         } catch (\Exception $e) {
             DB::rollBack();
-            return back()->with('error', 'Terjadi kesalahan. Silakan coba lagi.');
+            Log::error('placeOrder error: ' . $e->getMessage());
+            return back()->with('error', 'Terjadi kesalahan saat memproses pesanan. Silakan coba lagi.');
         }
+    }
+
+    /**
+     * Generate or refresh a Midtrans Snap token for an order.
+     * Called when order is first created, or when user resumes a pending payment.
+     */
+    private function generateSnapToken(Order $order, ?string $midtransOrderId = null): ?string
+    {
+        try {
+            \Midtrans\Config::$serverKey    = config('services.midtrans.server_key');
+            \Midtrans\Config::$isProduction = config('services.midtrans.is_production');
+            \Midtrans\Config::$isSanitized  = true;
+            \Midtrans\Config::$is3ds        = true;
+
+            $params = [
+                'transaction_details' => [
+                    'order_id'     => $midtransOrderId ?? $order->order_number,
+                    'gross_amount' => (int) $order->total_amount,
+                ],
+                'customer_details' => [
+                    'first_name' => $order->recipient_name,
+                    'phone'      => $order->recipient_phone,
+                    'email'      => $order->user->email ?? Auth::user()->email,
+                ],
+            ];
+
+            return \Midtrans\Snap::getSnapToken($params);
+        } catch (\Exception $e) {
+            Log::error('Midtrans Snap Generation Failed: ' . $e->getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * Refresh Midtrans snap token for a pending/unpaid order (resume payment).
+     */
+    public function refreshSnapToken(Order $order)
+    {
+        // Security: only the order owner can request this
+        if ($order->user_id !== Auth::id()) {
+            abort(403);
+        }
+
+        if (!in_array($order->payment_status, ['unpaid', 'pending_confirmation'])
+            || $order->status === 'cancelled'
+        ) {
+            return response()->json(['error' => 'Pesanan tidak dapat dibayar.'], 422);
+        }
+
+        $midtransOrderId = $order->order_number . '-' . time();
+        $snapToken = $this->generateSnapToken($order, $midtransOrderId);
+
+        if (!$snapToken) {
+            return response()->json(['error' => 'Gagal mengambil token pembayaran. Coba lagi.'], 500);
+        }
+
+        $order->update([
+            'midtrans_snap_token' => $snapToken,
+            'midtrans_order_id'   => $midtransOrderId,
+        ]);
+
+        return response()->json(['snap_token' => $snapToken]);
     }
 
     public function history()
@@ -111,53 +183,149 @@ class OrderController extends Controller
 
     public function detail($id)
     {
-        $order = Order::with(['items.product', 'paymentConfirmation'])
+        $order = Order::with(['items.product'])
             ->where('user_id', Auth::id())
             ->findOrFail($id);
 
         return view('orders.detail', compact('order'));
     }
 
-    public function showConfirmPayment($id)
+    public function completeOrder(Order $order)
     {
-        $order = Order::where('user_id', Auth::id())->findOrFail($id);
-        if ($order->payment_status === 'paid') {
-            return back()->with('info', 'Pembayaran sudah dikonfirmasi.');
+        if ($order->user_id !== Auth::id()) {
+            abort(403);
         }
-        return view('orders.confirm-payment', compact('order'));
-    }
 
-    public function submitConfirmPayment(Request $request, $id)
-    {
-        $order = Order::where('user_id', Auth::id())->findOrFail($id);
+        if ($order->status !== 'dikirim') {
+            return back()->with('error', 'Pesanan belum dikirim.');
+        }
 
-        $validated = $request->validate([
-            'bank_name'      => 'required|string|max:100',
-            'account_name'   => 'required|string|max:100',
-            'account_number' => 'required|string|max:50',
-            'amount_paid'    => 'required|numeric|min:1',
-            'transfer_date'  => 'required|date',
-            'transfer_proof' => 'required|image|mimes:jpg,jpeg,png|max:2048',
+        $order->update([
+            'status'       => 'selesai',
+            'completed_at' => now(),
         ]);
 
-        $path = $request->file('transfer_proof')->store('payment_proofs', 'public');
+        return back()->with('success', 'Terima kasih! Konfirmasi penerimaan pesanan berhasil.');
+    }
 
-        PaymentConfirmation::updateOrCreate(
-            ['order_id' => $order->id],
-            [
-                'bank_name'      => $validated['bank_name'],
-                'account_name'   => $validated['account_name'],
-                'account_number' => $validated['account_number'],
-                'amount_paid'    => $validated['amount_paid'],
-                'transfer_date'  => $validated['transfer_date'],
-                'transfer_proof' => $path,
-                'status'         => 'pending',
-            ]
-        );
+    /**
+     * Check payment status manually from Midtrans API
+     */
+    public function checkPaymentStatus(Order $order)
+    {
+        if ($order->user_id !== Auth::id()) {
+            abort(403);
+        }
 
-        $order->update(['payment_status' => 'pending_confirmation']);
+        try {
+            \Midtrans\Config::$serverKey    = config('services.midtrans.server_key');
+            \Midtrans\Config::$isProduction = config('services.midtrans.is_production');
 
-        return redirect()->route('orders.detail', $order->id)
-            ->with('success', 'Konfirmasi pembayaran berhasil dikirim. Menunggu verifikasi admin.');
+            // Fetch status directly from Midtrans API using midtrans_order_id (fallback to order_number)
+            $midtransId = $order->midtrans_order_id ?: $order->order_number;
+            $status = \Midtrans\Transaction::status($midtransId);
+
+            $transactionStatus = $status->transaction_status ?? null;
+            $paymentType       = $status->payment_type ?? null;
+
+            if ($transactionStatus === 'capture') {
+                if ($paymentType === 'credit_card' && ($status->fraud_status ?? '') === 'challenge') {
+                    $order->update(['payment_status' => 'pending_confirmation']);
+                } else {
+                    $order->update([
+                        'payment_status'           => 'paid',
+                        'status'                   => 'confirmed',
+                        'paid_at'                  => now(),
+                        'midtrans_transaction_id'  => $status->transaction_id ?? null,
+                    ]);
+                }
+            } elseif ($transactionStatus === 'settlement') {
+                $order->update([
+                    'payment_status'          => 'paid',
+                    'status'                  => 'confirmed',
+                    'paid_at'                 => now(),
+                    'midtrans_transaction_id' => $status->transaction_id ?? null,
+                ]);
+            } elseif ($transactionStatus === 'pending') {
+                $order->update(['payment_status' => 'pending_confirmation']);
+            } elseif (in_array($transactionStatus, ['deny', 'expire', 'cancel'])) {
+                $order->update([
+                    'payment_status' => 'failed',
+                    'status'         => 'cancelled',
+                ]);
+            }
+
+            if (request()->ajax() || request()->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'status'  => $order->payment_status,
+                    'message' => 'Status pembayaran berhasil diperbarui: ' . strtoupper($order->payment_status)
+                ]);
+            }
+
+            return back()->with('success', 'Status pembayaran berhasil diperbarui: ' . strtoupper($order->payment_status));
+
+        } catch (\Exception $e) {
+            Log::error('Check payment status error: ' . $e->getMessage());
+            
+            if (request()->ajax() || request()->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Gagal memverifikasi status pembayaran: ' . $e->getMessage()
+                ], 500);
+            }
+
+            return back()->with('error', 'Gagal memverifikasi status pembayaran ke Midtrans: ' . $e->getMessage());
+        }
+    }
+
+    public function midtransCallback(Request $request)
+    {
+        $serverKey = config('services.midtrans.server_key');
+        $hashed    = hash('sha512', $request->order_id . $request->status_code . $request->gross_amount . $serverKey);
+
+        if ($hashed !== $request->signature_key) {
+            return response()->json(['message' => 'Invalid signature'], 403);
+        }
+
+        $order = Order::where('midtrans_order_id', $request->order_id)
+            ->orWhere('order_number', $request->order_id)
+            ->first();
+        if (!$order) {
+            return response()->json(['message' => 'Order not found'], 404);
+        }
+
+        $transactionStatus = $request->transaction_status;
+        $paymentType       = $request->payment_type;
+
+        if ($transactionStatus === 'capture') {
+            if ($paymentType === 'credit_card' && $request->fraud_status === 'challenge') {
+                $order->update(['payment_status' => 'pending_confirmation']);
+            } else {
+                $order->update([
+                    'payment_status'           => 'paid',
+                    'status'                   => 'confirmed',
+                    'paid_at'                  => now(),
+                    'midtrans_transaction_id'  => $request->transaction_id ?? null,
+                ]);
+            }
+        } elseif ($transactionStatus === 'settlement') {
+            $order->update([
+                'payment_status'          => 'paid',
+                'status'                  => 'confirmed',
+                'paid_at'                 => now(),
+                'midtrans_transaction_id' => $request->transaction_id ?? null,
+            ]);
+        } elseif ($transactionStatus === 'pending') {
+            // Midtrans is awaiting payment (e.g. VA waiting to be transferred)
+            $order->update(['payment_status' => 'pending_confirmation']);
+        } elseif (in_array($transactionStatus, ['deny', 'expire', 'cancel'])) {
+            $order->update([
+                'payment_status' => 'failed',
+                'status'         => 'cancelled',
+            ]);
+        }
+
+        return response()->json(['message' => 'Callback processed']);
     }
 }

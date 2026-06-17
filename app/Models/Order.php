@@ -13,7 +13,7 @@ class Order extends Model
         'midtrans_snap_token', 'midtrans_transaction_id',
         'recipient_name', 'recipient_phone', 'shipping_address',
         'shipping_city', 'shipping_province', 'shipping_postal_code',
-        'notes', 'paid_at', 'shipped_at', 'completed_at',
+        'notes', 'tracking_number', 'paid_at', 'shipped_at', 'completed_at',
     ];
 
     protected $casts = [
@@ -45,17 +45,16 @@ class Order extends Model
         return $this->hasMany(OrderItem::class);
     }
 
-    public function paymentConfirmation()
-    {
-        return $this->hasOne(PaymentConfirmation::class);
-    }
-
     public function getStatusLabelAttribute(): string
     {
+        if ($this->payment_status === 'paid' && in_array($this->status, ['confirmed', 'diproses', 'pending'])) {
+            return 'Sedang Dikemas';
+        }
+
         return match ($this->status) {
-            'pending'    => 'Menunggu',
+            'pending'    => 'Menunggu Pembayaran',
             'confirmed'  => 'Dikonfirmasi',
-            'diproses'   => 'Diproses',
+            'diproses'   => 'Sedang Dikemas',
             'dikirim'    => 'Dikirim',
             'selesai'    => 'Selesai',
             'cancelled'  => 'Dibatalkan',
@@ -65,6 +64,10 @@ class Order extends Model
 
     public function getStatusColorAttribute(): string
     {
+        if ($this->payment_status === 'paid' && in_array($this->status, ['confirmed', 'diproses', 'pending'])) {
+            return 'indigo';
+        }
+
         return match ($this->status) {
             'pending'    => 'yellow',
             'confirmed'  => 'blue',
@@ -80,7 +83,7 @@ class Order extends Model
     {
         return match ($this->payment_status) {
             'unpaid'               => 'Belum Bayar',
-            'pending_confirmation' => 'Menunggu Konfirmasi',
+            'pending_confirmation' => 'Menunggu Pembayaran',
             'paid'                 => 'Lunas',
             'failed'               => 'Gagal',
             default                => ucfirst($this->payment_status),

@@ -42,7 +42,7 @@
                     <td class="px-6 py-4">
                         <div class="flex items-center gap-3">
                             <div class="w-10 h-10 rounded-xl bg-slate-100 overflow-hidden flex-shrink-0">
-                                @if($product->image)<img src="{{ asset('storage/'.$product->image) }}" class="w-full h-full object-cover">
+                                @if($product->image)<img src="{{ $product->image_url }}" class="w-full h-full object-cover">
                                 @else<div class="w-full h-full flex items-center justify-center text-lg">🌾</div>@endif
                             </div>
                             <div>

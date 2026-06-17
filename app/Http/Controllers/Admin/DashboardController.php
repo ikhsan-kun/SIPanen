@@ -22,7 +22,9 @@ class DashboardController extends Controller
             ->take(8)
             ->get();
 
-        $pendingConfirmations = Order::where('payment_status', 'pending_confirmation')->count();
+        $ordersToShip         = Order::where('payment_status', 'paid')
+                                     ->whereIn('status', ['confirmed', 'diproses', 'pending'])
+                                     ->count();
         $pendingOrders        = Order::where('status', 'pending')->count();
         $lowStockProducts     = Product::where('stock', '<=', 5)->where('is_active', true)->get();
 
@@ -48,7 +50,7 @@ class DashboardController extends Controller
 
         return view('admin.dashboard', compact(
             'totalRevenue', 'totalOrders', 'totalProducts', 'totalCustomers',
-            'recentOrders', 'pendingConfirmations', 'pendingOrders',
+            'recentOrders', 'ordersToShip', 'pendingOrders',
             'lowStockProducts', 'revenueData', 'ordersByStatus'
         ));
     }

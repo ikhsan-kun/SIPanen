@@ -1,10 +1,20 @@
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap');
 
 @import "tailwindcss";
 
+@theme {
+    --font-sans: 'Inter', 'Plus Jakarta Sans', system-ui, sans-serif;
+    
+    --color-primary-dark: #1B4332;
+    --color-primary-green: #2D6A4F;
+    --color-accent-green: #40916C;
+    --color-light-green: #D8F3DC;
+    --color-neutral-gray: #6B7280;
+}
+
 @layer base {
     html {
-        font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+        font-family: var(--font-sans);
     }
 }
 
@@ -15,7 +25,49 @@
         -webkit-box-orient: vertical;
         overflow: hidden;
     }
-    .font-800 {
-        font-weight: 800;
+    .line-clamp-3 {
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
     }
+}
+
+/* ─── Pagination styling ─── */
+nav[aria-label="pagination"] {
+    display: flex;
+    justify-content: center;
+}
+nav[aria-label="pagination"] span,
+nav[aria-label="pagination"] a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 36px;
+    height: 36px;
+    padding: 0 10px;
+    margin: 0 2px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    border: 1px solid #e2e8f0;
+    background: #fff;
+    color: #475569;
+    text-decoration: none;
+    transition: all 0.15s;
+}
+nav[aria-label="pagination"] a:hover {
+    background: #f0fdf4;
+    border-color: #86efac;
+    color: #15803d;
+}
+nav[aria-label="pagination"] span[aria-current="page"] > span {
+    background: #16a34a;
+    color: #fff;
+    border-color: #16a34a;
+}
+nav[aria-label="pagination"] span.cursor-default {
+    background: #f8fafc;
+    color: #94a3b8;
+    border-color: #e2e8f0;
 }

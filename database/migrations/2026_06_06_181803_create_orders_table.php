@@ -29,6 +29,7 @@ return new class extends Migration
             $table->string('shipping_province');
             $table->string('shipping_postal_code');
             $table->text('notes')->nullable();
+            $table->string('tracking_number')->nullable();
             $table->timestamp('paid_at')->nullable();
             $table->timestamp('shipped_at')->nullable();
             $table->timestamp('completed_at')->nullable();

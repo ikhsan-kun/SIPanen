@@ -30,13 +30,13 @@
 </div>
 
 {{-- Alerts --}}
-@if($pendingConfirmations > 0)
-<div class="bg-orange-50 border border-orange-200 rounded-2xl p-4 mb-6 flex items-center gap-3">
-    <i class="fa-solid fa-triangle-exclamation text-orange-500 text-lg"></i>
+@if($ordersToShip > 0)
+<div class="bg-indigo-50 border border-indigo-200 rounded-2xl p-4 mb-6 flex items-center gap-3">
+    <i class="fa-solid fa-box-open text-indigo-500 text-lg"></i>
     <div class="flex-1">
-        <p class="font-semibold text-orange-800 text-sm">{{ $pendingConfirmations }} konfirmasi pembayaran menunggu verifikasi</p>
+        <p class="font-semibold text-indigo-800 text-sm">{{ $ordersToShip }} pesanan baru telah dibayar & perlu dikemas / dikirim</p>
     </div>
-    <a href="{{ route('admin.orders.index',['payment_status'=>'pending_confirmation']) }}" class="text-sm font-semibold text-orange-700 hover:text-orange-900 bg-orange-100 px-3 py-1.5 rounded-lg transition-colors">Periksa</a>
+    <a href="{{ route('admin.orders.index', ['status' => 'confirmed']) }}" class="text-sm font-semibold text-indigo-700 hover:text-indigo-900 bg-indigo-100 px-3.5 py-2 rounded-lg transition-colors">Proses Pengiriman</a>
 </div>
 @endif
 
@@ -101,8 +101,21 @@
                 <tbody class="divide-y divide-slate-50">
                     @foreach($recentOrders as $order)
                     @php
-                    $sc = match($order->status) {'pending'=>'bg-yellow-100 text-yellow-700','confirmed'=>'bg-blue-100 text-blue-700','diproses'=>'bg-indigo-100 text-indigo-700','dikirim'=>'bg-purple-100 text-purple-700','selesai'=>'bg-green-100 text-green-700','cancelled'=>'bg-red-100 text-red-700',default=>'bg-slate-100 text-slate-600'};
-                    $pc = match($order->payment_status) {'paid'=>'bg-green-100 text-green-700','pending_confirmation'=>'bg-orange-100 text-orange-700','unpaid'=>'bg-red-100 text-red-700',default=>'bg-slate-100 text-slate-600'};
+                    $statusColorClass = match($order->status_color) {
+                        'yellow' => 'bg-yellow-100 text-yellow-700',
+                        'blue' => 'bg-blue-100 text-blue-700',
+                        'indigo' => 'bg-indigo-100 text-indigo-700',
+                        'purple' => 'bg-purple-100 text-purple-700',
+                        'green' => 'bg-green-100 text-green-700',
+                        'red' => 'bg-red-100 text-red-700',
+                        default => 'bg-slate-100 text-slate-600'
+                    };
+                    $pc = match($order->payment_status) {
+                        'paid' => 'bg-green-100 text-green-700',
+                        'pending_confirmation' => 'bg-orange-100 text-orange-700',
+                        'unpaid' => 'bg-red-100 text-red-700',
+                        default => 'bg-slate-100 text-slate-600'
+                    };
                     @endphp
                     <tr class="hover:bg-slate-50/50 transition-colors">
                         <td class="px-6 py-3.5 font-mono font-semibold text-slate-700 text-xs">{{ $order->order_number }}</td>
@@ -113,7 +126,7 @@
                             </div>
                         </td>
                         <td class="px-6 py-3.5 font-bold text-slate-800">Rp {{ number_format($order->total_amount,0,',','.') }}</td>
-                        <td class="px-6 py-3.5"><span class="text-xs font-semibold px-2 py-1 rounded-full {{ $sc }}">{{ $order->status_label }}</span></td>
+                        <td class="px-6 py-3.5"><span class="text-xs font-semibold px-2 py-1 rounded-full {{ $statusColorClass }}">{{ $order->status_label }}</span></td>
                         <td class="px-6 py-3.5"><span class="text-xs font-semibold px-2 py-1 rounded-full {{ $pc }}">{{ $order->payment_status_label }}</span></td>
                         <td class="px-6 py-3.5 text-slate-500 text-xs">{{ $order->created_at->format('d M Y') }}</td>
                         <td class="px-6 py-3.5"><a href="{{ route('admin.orders.show',$order->id) }}" class="text-green-600 hover:text-green-700 font-semibold text-xs">Detail →</a></td>

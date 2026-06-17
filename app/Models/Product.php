@@ -51,4 +51,17 @@ class Product extends Model
     {
         return $this->is_active && $this->stock > 0;
     }
+
+    public function getImageUrlAttribute(): string
+    {
+        if (empty($this->image)) {
+            return '';
+        }
+
+        if (file_exists(public_path($this->image))) {
+            return asset($this->image);
+        }
+
+        return asset('storage/' . $this->image);
+    }
 }

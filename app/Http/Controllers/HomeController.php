@@ -10,11 +10,15 @@ class HomeController extends Controller
     public function index()
     {
         $featuredProducts = Product::where('is_active', true)
-            ->orderBy('stock', 'desc')
+            ->orderByRaw('CASE WHEN stock > 0 THEN 0 ELSE 1 END') // available first
+            ->orderBy('created_at', 'desc')
             ->take(6)
             ->get();
 
-        $totalProducts = Product::where('is_active', true)->count();
+        // Count distinct categories (always 3: egrek, dodos, telescopic_pole)
+        $totalProducts = Product::where('is_active', true)
+            ->distinct('category')
+            ->count('category');
 
         return view('home', compact('featuredProducts', 'totalProducts'));
     }
