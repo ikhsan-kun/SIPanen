@@ -15,7 +15,7 @@
 @section('content')
 
 {{-- Page Header --}}
-<div class="border-b border-gray-100 bg-gray-50/50 py-10">
+<div class="border-b border-gray-100 bg-gradient-to-b from-gray-50 to-white py-10">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {{-- Breadcrumb --}}
         <nav class="flex items-center space-x-2 text-xs text-gray-500 mb-4">
@@ -103,9 +103,9 @@
         </a>
     </div>
     @else
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
         @foreach($products as $product)
-        <div class="prod-card bg-white rounded-lg border border-gray-100 overflow-hidden flex flex-col card-shadow">
+        <div class="prod-card bg-white rounded-2xl border border-gray-100 overflow-hidden flex flex-col shadow-sm">
             
             {{-- Image --}}
             <div class="h-52 bg-gray-50 relative overflow-hidden flex items-center justify-center">

@@ -4,7 +4,7 @@
 @section('content')
 
 {{-- Page Header --}}
-<div class="border-b border-gray-100 bg-gray-50/50 py-10">
+<div class="border-b border-gray-100 bg-gradient-to-b from-gray-50 to-white py-12">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {{-- Breadcrumb --}}
         <nav class="flex items-center space-x-2 text-xs text-gray-500 mb-4">
@@ -75,11 +75,12 @@
                 </div>
                 
                 <button type="button"
-                        onclick="alert('Fitur pengiriman pesan akan segera hadir. Silakan hubungi kami via WhatsApp.')"
-                        class="w-full bg-primary-green hover:bg-accent-green text-white font-bold py-2.5 rounded-md transition text-sm flex items-center justify-center space-x-1.5">
-                    <i class="fa-solid fa-paper-plane text-xs"></i> 
+                        onclick="document.getElementById('contact-info').textContent = 'Terima kasih! Untuk menghubungi kami, silakan gunakan WhatsApp atau email langsung ke info@ekiindo.com'; document.getElementById('contact-info').classList.remove('hidden');"
+                        class="w-full bg-primary-green hover:bg-accent-green text-white font-bold py-2.5 rounded-xl transition-all hover:shadow-md hover:shadow-green-500/20 text-sm flex items-center justify-center space-x-1.5">
+                    <i class="fa-solid fa-paper-plane text-xs"></i>
                     <span>Kirim Pesan</span>
                 </button>
+                <p id="contact-info" class="hidden text-center text-xs text-gray-500 mt-3 bg-green-50 border border-green-200 text-green-700 px-3 py-2 rounded-lg"></p>
                 <div class="text-center text-[10px] text-gray-400 flex items-center justify-center space-x-1 mt-4">
                     <i class="fa-solid fa-lock text-primary-green"></i> 
                     <span>Informasi Anda aman & tidak akan disebarluaskan</span>

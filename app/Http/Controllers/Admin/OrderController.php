@@ -43,10 +43,12 @@ class OrderController extends Controller
 
         $data = ['status' => $request->status];
 
-        if ($request->filled('tracking_number')) {
+        // Tracking number: only set when shipping, clear if status reverts
+        if ($request->status === 'dikirim' && $request->filled('tracking_number')) {
             $data['tracking_number'] = $request->tracking_number;
         }
 
+        // Timestamps: only set once, never overwrite
         if ($request->status === 'dikirim' && !$order->shipped_at) {
             $data['shipped_at'] = now();
         }

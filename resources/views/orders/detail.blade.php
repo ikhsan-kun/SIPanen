@@ -3,7 +3,7 @@
 @section('meta_description', 'Detail pesanan ' . $order->order_number . '. Status: ' . $order->status_label . '. Total: ' . $order->formatted_total)
 
 @section('content')
-<div class="pt-24 min-h-screen bg-slate-50">
+<div class="min-h-screen bg-slate-50 py-10">
     <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
 
         {{-- Breadcrumb --}}

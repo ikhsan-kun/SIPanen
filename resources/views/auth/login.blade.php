@@ -1,103 +1,129 @@
-@extends('layouts.app')
-@section('title','Masuk — SiPanen')
+@extends('layouts.auth')
+@section('title', 'Masuk — SiPanen')
 
 @section('content')
-<div class="min-h-[calc(100vh-104px)] flex items-center justify-center bg-gray-50 px-4 sm:px-6 lg:px-8 py-12">
-    <div class="max-w-4xl w-full bg-white rounded-xl card-shadow overflow-hidden border border-gray-100 flex flex-col md:flex-row">
 
-        {{-- Left: Visual panel --}}
-        <div class="md:w-5/12 bg-primary-dark p-10 text-white flex flex-col justify-between relative overflow-hidden">
-            <div class="absolute -right-8 -bottom-8 w-60 h-60 bg-white/5 rounded-full blur-2xl pointer-events-none"></div>
-            <div class="absolute right-1/3 top-8 w-28 h-28 bg-primary-green/20 rounded-full blur-xl pointer-events-none"></div>
+{{-- Header --}}
+<div class="mb-8">
+    <h2 class="text-2xl font-extrabold text-slate-900">Selamat Datang Kembali 👋</h2>
+    <p class="text-slate-500 mt-2 text-sm">Masuk ke akun SiPanen Anda untuk mulai berbelanja.</p>
+</div>
 
-            <div class="relative z-10 flex items-center space-x-2">
-                <img alt="SiPanen Logo" class="h-6 w-auto brightness-200" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAeCDJmAzJIpbqolbDZmub5taHkKMzKt_wek4FQjknuhSIS00SmRxq9YHj9uroaXxPEUsVLdRWlPInxxeSD5I9HH_oXImwZhlwIAx8Z7MAk425OCKOLY0kaPp4L1P4LtweWqFF40bAion4WHdvCwZHJqxDLukjrbn-wFDz5mWMqkcCw2R12CZLhMRNrjtbZqtm5AtvCyTIMLVqgDDy2Dbm_cxmg-sVxdTBpkfrxrSQI3FjskyF4BIbop1yxC_CzrXz-eN8leGzXWUc"/>
-                <span class="font-bold text-lg tracking-tight block">SiPanen</span>
+{{-- Error Alert --}}
+@if($errors->any())
+<div class="flex items-start gap-3 bg-red-50 border border-red-200 text-red-700 px-4 py-3.5 rounded-xl mb-6 text-sm">
+    <i class="fa-solid fa-circle-exclamation flex-shrink-0 mt-0.5 text-red-500"></i>
+    <span>{{ $errors->first() }}</span>
+</div>
+@endif
+
+{{-- Login Form --}}
+<form action="{{ route('login') }}" method="POST" class="space-y-5">
+    @csrf
+
+    {{-- Email --}}
+    <div>
+        <label for="email" class="block text-xs font-bold text-slate-700 mb-2 uppercase tracking-wide">
+            Alamat Email
+        </label>
+        <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                <i class="fa-solid fa-envelope text-slate-400 text-sm"></i>
             </div>
-
-            <div class="relative z-10 my-8">
-                <h2 class="text-2xl font-extrabold leading-tight mb-4 text-green-100">
-                    Mitra Terbaik Kelapa Sawit Anda
-                </h2>
-                <p class="text-gray-300 leading-relaxed text-xs">
-                    Menyediakan egrek, dodos, dan gagang teleskopik presisi berkualitas tinggi yang ditempa untuk efisiensi dan produktivitas perkebunan kelapa sawit Anda.
-                </p>
-                <div class="mt-6 space-y-3">
-                    @foreach(['Kualitas Baja Premium','Pengiriman Aman Seluruh Indonesia','Pembayaran via Midtrans'] as $f)
-                    <div class="flex items-center space-x-2 text-xs text-green-200">
-                        <i class="fa-solid fa-circle-check text-accent-green flex-shrink-0"></i> 
-                        <span>{{ $f }}</span>
-                    </div>
-                    @endforeach
-                </div>
-            </div>
-
-            <div class="relative z-10 border-t border-white/10 pt-4 flex items-center justify-between text-[10px] text-gray-400">
-                <span>© {{ date('Y') }} CV. Ekiindo Tegal</span>
-                <span>v1.0</span>
-            </div>
-        </div>
-
-        {{-- Right: Form panel --}}
-        <div class="md:w-7/12 p-8 sm:p-12 flex flex-col justify-center">
-            <div class="mb-8">
-                <h1 class="text-xl font-bold text-gray-900">Selamat Datang Kembali</h1>
-                <p class="text-gray-500 mt-1 text-xs">Silakan masuk menggunakan email dan password Anda.</p>
-            </div>
-
-            @if($errors->any())
-            <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6 text-xs flex items-center space-x-2">
-                <i class="fa-solid fa-circle-exclamation flex-shrink-0"></i>
-                <span>{{ $errors->first() }}</span>
-            </div>
-            @endif
-
-            <form action="{{ route('login') }}" method="POST" class="space-y-4">
-                @csrf
-                <div>
-                    <label class="block text-xs font-semibold text-gray-700 uppercase mb-1.5">Alamat Email</label>
-                    <div class="relative">
-                        <i class="fa-solid fa-envelope absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
-                        <input type="email" name="email" value="{{ old('email') }}" required
-                               placeholder="nama@perusahaan.com"
-                               class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-primary-green focus:border-primary-green bg-white transition @error('email') border-red-400 bg-red-50 @enderror">
-                    </div>
-                </div>
-
-                <div>
-                    <label class="block text-xs font-semibold text-gray-700 uppercase mb-1.5">Kata Sandi</label>
-                    <div class="relative">
-                        <i class="fa-solid fa-lock absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
-                        <input type="password" name="password" id="pw-field" required
-                               placeholder="••••••••"
-                               class="w-full pl-10 pr-12 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-primary-green focus:border-primary-green bg-white transition">
-                        <button type="button" onclick="togglePw()"
-                                class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors">
-                            <i class="fa-solid fa-eye" id="pw-icon"></i>
-                        </button>
-                    </div>
-                </div>
-
-                <div class="flex items-center justify-between">
-                    <label class="flex items-center space-x-2 text-xs text-gray-600 cursor-pointer">
-                        <input type="checkbox" name="remember" class="rounded border-gray-300 text-primary-green focus:ring-primary-green cursor-pointer">
-                        <span>Ingat saya</span>
-                    </label>
-                </div>
-
-                <button type="submit"
-                        class="w-full bg-primary-green hover:bg-accent-green text-white font-bold py-2.5 rounded-md transition duration-150 shadow-sm text-sm">
-                    Masuk ke Akun
-                </button>
-            </form>
-
-            <p class="text-center text-xs text-gray-500 mt-6">
-                Belum memiliki akun?
-                <a href="{{ route('register') }}" class="text-primary-green font-bold hover:underline transition-colors">Daftar gratis</a>
-            </p>
+            <input
+                type="email"
+                id="email"
+                name="email"
+                value="{{ old('email') }}"
+                required
+                autocomplete="email"
+                placeholder="nama@perusahaan.com"
+                class="form-input w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-800 placeholder-slate-400 focus:outline-none @error('email') border-red-400 bg-red-50 @enderror"
+            >
         </div>
     </div>
+
+    {{-- Password --}}
+    <div>
+        <label for="pw-field" class="block text-xs font-bold text-slate-700 mb-2 uppercase tracking-wide">
+            Kata Sandi
+        </label>
+        <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                <i class="fa-solid fa-lock text-slate-400 text-sm"></i>
+            </div>
+            <input
+                type="password"
+                id="pw-field"
+                name="password"
+                required
+                placeholder="••••••••"
+                class="form-input w-full pl-11 pr-12 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-800 placeholder-slate-400 focus:outline-none"
+            >
+            <button
+                type="button"
+                onclick="togglePw()"
+                class="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-slate-600 transition-colors"
+                tabindex="-1"
+            >
+                <i class="fa-solid fa-eye text-sm" id="pw-icon"></i>
+            </button>
+        </div>
+    </div>
+
+    {{-- Remember --}}
+    <div class="flex items-center justify-between">
+        <label class="flex items-center gap-2 cursor-pointer group">
+            <input
+                type="checkbox"
+                name="remember"
+                class="w-4 h-4 rounded border-slate-300 text-green-600 focus:ring-green-500 cursor-pointer"
+            >
+            <span class="text-sm text-slate-600 group-hover:text-slate-800 transition-colors">Ingat saya</span>
+        </label>
+    </div>
+
+    {{-- Submit --}}
+    <button
+        type="submit"
+        id="login-btn"
+        class="w-full bg-green-600 hover:bg-green-500 active:bg-green-700 text-white font-bold py-3.5 rounded-xl text-sm transition-all hover:shadow-lg hover:shadow-green-500/25 hover:-translate-y-0.5 flex items-center justify-center gap-2"
+    >
+        <i class="fa-solid fa-right-to-bracket"></i>
+        Masuk ke Akun
+    </button>
+</form>
+
+{{-- Divider --}}
+<div class="flex items-center gap-3 my-6">
+    <div class="flex-1 h-px bg-slate-200"></div>
+    <span class="text-xs text-slate-400 font-medium">atau</span>
+    <div class="flex-1 h-px bg-slate-200"></div>
 </div>
+
+{{-- Register link --}}
+<div class="text-center">
+    <p class="text-sm text-slate-500">
+        Belum punya akun?
+        <a href="{{ route('register') }}" class="text-green-600 font-bold hover:text-green-700 hover:underline transition-colors ml-1">
+            Daftar Gratis
+        </a>
+    </p>
+</div>
+
+{{-- Trust badges --}}
+<div class="mt-8 pt-6 border-t border-slate-100 flex items-center justify-center gap-5 flex-wrap">
+    <span class="flex items-center gap-1.5 text-xs text-slate-400">
+        <i class="fa-solid fa-lock text-green-500"></i> SSL Secured
+    </span>
+    <span class="flex items-center gap-1.5 text-xs text-slate-400">
+        <i class="fa-solid fa-shield-halved text-green-500"></i> PCI-DSS
+    </span>
+    <span class="flex items-center gap-1.5 text-xs text-slate-400">
+        <i class="fa-solid fa-shield-check text-green-500"></i> Data Terlindungi
+    </span>
+</div>
+
 @endsection
 
 @push('scripts')
@@ -105,8 +131,22 @@
 function togglePw() {
     const f = document.getElementById('pw-field');
     const i = document.getElementById('pw-icon');
-    f.type = f.type === 'password' ? 'text' : 'password';
-    i.classList.toggle('fa-eye'); i.classList.toggle('fa-eye-slash');
+    const isPass = f.type === 'password';
+    f.type = isPass ? 'text' : 'password';
+    i.classList.toggle('fa-eye', !isPass);
+    i.classList.toggle('fa-eye-slash', isPass);
+}
+
+// Loading state hanya aktif ketika form submit valid
+const loginForm = document.querySelector('form');
+const loginBtn  = document.getElementById('login-btn');
+if (loginForm && loginBtn) {
+    loginForm.addEventListener('submit', function(e) {
+        if (this.checkValidity()) {
+            loginBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Memproses...';
+            loginBtn.disabled  = true;
+        }
+    });
 }
 </script>
 @endpush

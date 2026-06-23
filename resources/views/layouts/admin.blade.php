@@ -16,10 +16,10 @@
 <div class="flex h-screen overflow-hidden">
 
     {{-- Sidebar overlay (mobile) --}}
-    <div id="sidebar-overlay" class="fixed inset-0 bg-slate-950/60 z-35 hidden transition-opacity duration-300 opacity-0" onclick="toggleSidebar()"></div>
+    <div id="sidebar-overlay" class="fixed inset-0 bg-slate-950/60 z-30 hidden transition-opacity duration-300 opacity-0" onclick="toggleSidebar()"></div>
 
     {{-- Sidebar --}}
-    <aside id="sidebar" class="fixed inset-y-0 left-0 w-64 flex flex-col bg-slate-900 text-slate-300 transition-all duration-350 z-40 transform -translate-x-full md:relative md:translate-x-0 md:flex">
+    <aside id="sidebar" class="fixed inset-y-0 left-0 w-64 flex flex-col bg-slate-900 text-slate-300 transition-transform duration-300 z-40 transform -translate-x-full md:relative md:translate-x-0 md:flex">
         {{-- Brand --}}
         <div class="flex items-center gap-3 px-6 py-5 border-b border-slate-800">
             <div class="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style="background:linear-gradient(135deg,#16a34a,#15803d)">

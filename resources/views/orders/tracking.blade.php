@@ -6,7 +6,7 @@
 @section('page-subtitle', 'Pesanan: ' . $order->order_number)
 
 @section('content')
-<div class="{{ request()->is('admin/*') ? '' : 'pt-24 min-h-screen bg-slate-50' }}">
+<div class="{{ request()->is('admin/*') ? '' : 'min-h-screen bg-slate-50 py-10' }}">
     <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         
         {{-- Back Button --}}

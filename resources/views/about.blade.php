@@ -4,7 +4,7 @@
 @section('content')
 
 {{-- Page Header --}}
-<div class="border-b border-gray-100 bg-gray-50/50 py-10">
+<div class="border-b border-gray-100 bg-gradient-to-b from-gray-50 to-white py-12">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {{-- Breadcrumb --}}
         <nav class="flex items-center space-x-2 text-xs text-gray-500 mb-4">
