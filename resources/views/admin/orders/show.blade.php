@@ -127,7 +127,7 @@
                 default                => 'fa-clock text-slate-400'
             };
             @endphp
-            <div class="border rounded-2xl p-4 {{ $payBgClass }} flex items-center justify-between gap-4">
+            <div class="border rounded-2xl p-4 {{ $payBgClass }} flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div class="flex items-center gap-4">
                     <i class="fa-solid {{ $payIcon }} text-xl flex-shrink-0"></i>
                     <div>

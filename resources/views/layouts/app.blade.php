@@ -12,6 +12,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <style>
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
@@ -84,6 +85,8 @@
 
                 {{-- Desktop Nav --}}
                 <nav class="hidden md:flex items-center space-x-1 text-sm font-semibold text-gray-600">
+                    <a class="px-3 py-2 rounded-lg hover:bg-gray-50 hover:text-primary-green transition-all {{ request()->routeIs('home') ? 'text-primary-green bg-green-50' : '' }}"
+                       href="{{ route('home') }}">Beranda</a>
                     <a class="px-3 py-2 rounded-lg hover:bg-gray-50 hover:text-primary-green transition-all {{ request()->routeIs('catalog') ? 'text-primary-green bg-green-50' : '' }}"
                        href="{{ route('catalog') }}">Katalog</a>
                     <a class="px-3 py-2 rounded-lg hover:bg-gray-50 hover:text-primary-green transition-all {{ request()->routeIs('about') ? 'text-primary-green bg-green-50' : '' }}"
@@ -167,7 +170,7 @@
             </div>
 
             {{-- Mobile Menu --}}
-            <div id="mobile-menu">
+            <div id="mobile-menu" class="md:hidden">
                 <div class="border-t border-gray-100 py-3 space-y-1">
                     {{-- Mobile Search --}}
                     <form action="{{ route('catalog') }}" method="GET" class="px-2 mb-3">
@@ -178,6 +181,7 @@
                                    placeholder="Cari produk..." type="text"/>
                         </div>
                     </form>
+                    <a href="{{ route('home') }}" class="block px-4 py-2.5 text-sm font-semibold rounded-lg {{ request()->routeIs('home') ? 'text-primary-green bg-green-50' : 'text-gray-700 hover:bg-gray-50' }}">Beranda</a>
                     <a href="{{ route('catalog') }}" class="block px-4 py-2.5 text-sm font-semibold rounded-lg {{ request()->routeIs('catalog') ? 'text-primary-green bg-green-50' : 'text-gray-700 hover:bg-gray-50' }}">Katalog</a>
                     <a href="{{ route('about') }}" class="block px-4 py-2.5 text-sm font-semibold rounded-lg {{ request()->routeIs('about') ? 'text-primary-green bg-green-50' : 'text-gray-700 hover:bg-gray-50' }}">Tentang Kami</a>
                     <a href="{{ route('contact') }}" class="block px-4 py-2.5 text-sm font-semibold rounded-lg {{ request()->routeIs('contact') ? 'text-primary-green bg-green-50' : 'text-gray-700 hover:bg-gray-50' }}">Kontak</a>
@@ -368,6 +372,55 @@
                 icon.className = isOpen ? 'fa-solid fa-bars text-lg' : 'fa-solid fa-xmark text-lg';
             }
         }
+
+        // Global SweetAlert2 Handlers
+        window.alert = function(message) {
+            Swal.fire({
+                title: 'Informasi',
+                text: message,
+                icon: 'info',
+                confirmButtonColor: '#16a34a',
+                confirmButtonText: 'OK',
+                customClass: {
+                    popup: 'rounded-2xl',
+                    confirmButton: 'rounded-xl px-5 py-2.5 text-sm font-bold text-white'
+                }
+            });
+        };
+
+        document.addEventListener('submit', function(e) {
+            const form = e.target;
+            if (form.hasAttribute('data-confirm')) {
+                e.preventDefault();
+                const message = form.getAttribute('data-confirm');
+                const confirmText = form.getAttribute('data-confirm-btn') || 'Ya, Lanjutkan';
+                const cancelText = form.getAttribute('data-cancel-btn') || 'Batal';
+                const confirmColor = form.getAttribute('data-confirm-color') || '#16a34a';
+
+                Swal.fire({
+                    title: 'Apakah Anda yakin?',
+                    text: message,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: confirmColor,
+                    cancelButtonColor: '#ef4444',
+                    confirmButtonText: confirmText,
+                    cancelButtonText: cancelText,
+                    customClass: {
+                        popup: 'rounded-2xl shadow-xl border border-slate-100',
+                        confirmButton: 'rounded-xl px-5 py-2.5 text-sm font-bold text-white',
+                        cancelButton: 'rounded-xl px-5 py-2.5 text-sm font-bold text-white'
+                    }
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        const originalConfirm = form.getAttribute('data-confirm');
+                        form.removeAttribute('data-confirm');
+                        form.submit();
+                        form.setAttribute('data-confirm', originalConfirm);
+                    }
+                });
+            }
+        });
     </script>
     @stack('scripts')
 </body>

@@ -44,26 +44,29 @@
             {{-- Cart items --}}
             <div class="lg:col-span-2 space-y-4">
                 @foreach($cart as $id => $item)
-                <div class="bg-white rounded-lg border border-gray-200 p-5 flex items-center space-x-4 card-shadow">
-                    {{-- Image --}}
-                    <div class="w-16 h-16 rounded-md bg-gray-50 overflow-hidden flex-shrink-0 flex items-center justify-center p-1">
-                        @if($item['image'])
-                        <img src="{{ file_exists(public_path($item['image'])) ? asset($item['image']) : asset('storage/'.$item['image']) }}"
-                             alt="{{ $item['name'] }}" class="max-h-full max-w-full object-contain">
-                        @else
-                        <div class="w-full h-full flex items-center justify-center text-2xl">🌾</div>
-                        @endif
+                <div class="bg-white rounded-2xl border border-gray-200 p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center gap-4 card-shadow">
+                    {{-- Image & Info wrapper --}}
+                    <div class="flex items-center gap-3 sm:flex-1 min-w-0">
+                        {{-- Image --}}
+                        <div class="w-16 h-16 rounded-xl bg-gray-50 overflow-hidden flex-shrink-0 flex items-center justify-center p-1 border border-gray-100">
+                            @if($item['image'])
+                            <img src="{{ file_exists(public_path($item['image'])) ? asset($item['image']) : asset('storage/'.$item['image']) }}"
+                                 alt="{{ $item['name'] }}" class="max-h-full max-w-full object-contain">
+                            @else
+                            <div class="w-full h-full flex items-center justify-center text-2xl">🌾</div>
+                            @endif
+                        </div>
+
+                        {{-- Info --}}
+                        <div class="min-w-0 flex-1">
+                            <h3 class="font-bold text-gray-900 truncate text-sm leading-snug">{{ $item['name'] }}</h3>
+                            <p class="text-primary-green font-bold text-sm mt-1 leading-none">Rp {{ number_format($item['price'],0,',','.') }}</p>
+                            <p class="text-[10px] text-gray-400 mt-1.5">per {{ $item['unit'] }} · Stok: {{ $item['stock'] }}</p>
+                        </div>
                     </div>
 
-                    {{-- Info --}}
-                    <div class="flex-1 min-w-0">
-                        <h3 class="font-bold text-gray-900 truncate text-sm leading-none">{{ $item['name'] }}</h3>
-                        <p class="text-primary-green font-bold text-sm mt-2 leading-none">Rp {{ number_format($item['price'],0,',','.') }}</p>
-                        <p class="text-[10px] text-gray-400 mt-2">per {{ $item['unit'] }} · Stok: {{ $item['stock'] }}</p>
-                    </div>
-
-                    {{-- Qty & total --}}
-                    <div class="flex items-center space-x-4 flex-shrink-0">
+                    {{-- Qty & total & Delete wrapper --}}
+                    <div class="flex items-center justify-between sm:justify-end gap-4 border-t border-gray-100 pt-3 sm:border-t-0 sm:pt-0">
                         <form action="{{ route('cart.update', $id) }}" method="POST"
                               class="flex items-center border border-gray-300 rounded-md overflow-hidden bg-white">
                             @csrf @method('PATCH')
@@ -73,7 +76,7 @@
                             <button type="submit" name="quantity" value="{{ $item['quantity'] + 1 }}"
                                     class="px-2 py-1 text-gray-600 hover:bg-gray-50 font-bold text-sm">+</button>
                         </form>
-                        <div class="text-right min-w-[100px]">
+                        <div class="text-right sm:min-w-[100px]">
                             <p class="font-bold text-gray-900 text-sm">Rp {{ number_format($item['price'] * $item['quantity'],0,',','.') }}</p>
                         </div>
                         <form action="{{ route('cart.remove', $id) }}" method="POST">

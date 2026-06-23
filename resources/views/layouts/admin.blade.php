@@ -9,6 +9,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     @vite(['resources/css/app.css','resources/js/app.js'])
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     @stack('styles')
 </head>
 <body class="bg-slate-100 antialiased" style="font-family:'Plus Jakarta Sans',sans-serif;">
@@ -16,7 +17,7 @@
 <div class="flex h-screen overflow-hidden">
 
     {{-- Sidebar overlay (mobile) --}}
-    <div id="sidebar-overlay" class="fixed inset-0 bg-slate-950/60 z-30 hidden transition-opacity duration-300 opacity-0" onclick="toggleSidebar()"></div>
+    <div id="sidebar-overlay" class="fixed inset-0 bg-slate-950/60 z-30 hidden md:hidden transition-opacity duration-300 opacity-0" onclick="toggleSidebar()"></div>
 
     {{-- Sidebar --}}
     <aside id="sidebar" class="fixed inset-y-0 left-0 w-64 flex flex-col bg-slate-900 text-slate-300 transition-transform duration-300 z-40 transform -translate-x-full md:relative md:translate-x-0 md:flex">
@@ -48,12 +49,6 @@
                {{ request()->routeIs($nav['route'].'*') ? 'bg-green-600 text-white shadow-lg shadow-green-900/30' : 'text-slate-400 hover:bg-slate-800 hover:text-white' }}">
                 <i class="fa-solid {{ $nav['icon'] }} w-4 text-center"></i>
                 <span>{{ $nav['label'] }}</span>
-                @if($nav['route']==='admin.orders.index')
-                    @php $pendingCount = \App\Models\Order::where('payment_status','pending_confirmation')->count(); @endphp
-                    @if($pendingCount > 0)
-                    <span class="ml-auto w-5 h-5 bg-orange-500 text-white text-xs rounded-full flex items-center justify-center font-bold">{{ $pendingCount }}</span>
-                    @endif
-                @endif
             </a>
             @endforeach
         </nav>
@@ -93,9 +88,9 @@
             </div>
             <div class="flex items-center gap-3">
                 <a href="{{ route('home') }}" target="_blank" class="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-slate-600 hover:bg-slate-100 transition-colors">
-                    <i class="fa-solid fa-arrow-up-right-from-square text-xs"></i> Lihat Website
+                    <i class="fa-solid fa-arrow-up-right-from-square text-xs"></i> <span class="hidden sm:inline">Lihat Website</span>
                 </a>
-                <div class="text-xs text-slate-500">{{ now()->isoFormat('dddd, D MMMM Y') }}</div>
+                <div class="text-xs text-slate-500 hidden md:block">{{ now()->isoFormat('dddd, D MMMM Y') }}</div>
             </div>
         </header>
 
@@ -145,6 +140,55 @@ function toggleSidebar() {
         setTimeout(() => overlay.classList.add('hidden'), 300);
     }
 }
+
+// Global SweetAlert2 Handlers for Admin
+window.alert = function(message) {
+    Swal.fire({
+        title: 'Informasi',
+        text: message,
+        icon: 'info',
+        confirmButtonColor: '#16a34a',
+        confirmButtonText: 'OK',
+        customClass: {
+            popup: 'rounded-2xl',
+            confirmButton: 'rounded-xl px-5 py-2.5 text-sm font-bold text-white'
+        }
+    });
+};
+
+document.addEventListener('submit', function(e) {
+    const form = e.target;
+    if (form.hasAttribute('data-confirm')) {
+        e.preventDefault();
+        const message = form.getAttribute('data-confirm');
+        const confirmText = form.getAttribute('data-confirm-btn') || 'Ya, Hapus';
+        const cancelText = form.getAttribute('data-cancel-btn') || 'Batal';
+        const confirmColor = form.getAttribute('data-confirm-color') || '#ef4444'; // Red default for delete in admin
+
+        Swal.fire({
+            title: 'Apakah Anda yakin?',
+            text: message,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: confirmColor,
+            cancelButtonColor: '#64748b', // slate-500
+            confirmButtonText: confirmText,
+            cancelButtonText: cancelText,
+            customClass: {
+                popup: 'rounded-2xl shadow-xl border border-slate-100',
+                confirmButton: 'rounded-xl px-5 py-2.5 text-sm font-bold text-white',
+                cancelButton: 'rounded-xl px-5 py-2.5 text-sm font-bold text-white'
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const originalConfirm = form.getAttribute('data-confirm');
+                form.removeAttribute('data-confirm');
+                form.submit();
+                form.setAttribute('data-confirm', originalConfirm);
+            }
+        });
+    }
+});
 </script>
 </body>
 </html>

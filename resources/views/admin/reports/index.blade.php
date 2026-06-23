@@ -65,7 +65,7 @@
             <h2 class="font-bold text-slate-800">Transaksi Periode {{ \Carbon\Carbon::parse($startDate)->format('d M Y') }} — {{ \Carbon\Carbon::parse($endDate)->format('d M Y') }}</h2>
         </div>
         <div class="overflow-x-auto">
-            <table class="w-full text-sm">
+            <table class="w-full min-w-[600px] text-sm">
                 <thead class="bg-slate-50">
                     <tr>
                         <th class="text-left px-6 py-3 text-xs font-semibold text-slate-500 uppercase">No. Pesanan</th>

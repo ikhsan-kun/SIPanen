@@ -93,7 +93,7 @@
                                class="inline-flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs px-4 py-2.5 rounded-xl transition-colors shadow-sm">
                                 <i class="fa-solid fa-magnifying-glass"></i> Lacak Resi
                             </a>
-                            <form action="{{ route('orders.complete', $order->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin barang sudah sampai dan diterima dengan baik? Tindakan ini akan menyelesaikan pesanan.')">
+                            <form action="{{ route('orders.complete', $order->id) }}" method="POST" data-confirm="Apakah Anda yakin barang sudah sampai dan diterima dengan baik? Tindakan ini akan menyelesaikan pesanan." data-confirm-btn="Ya, Selesai" data-confirm-color="#16a34a">
                                 @csrf
                                 <button type="submit" class="inline-flex items-center gap-1.5 bg-green-600 hover:bg-green-500 text-white font-bold text-xs px-4 py-2.5 rounded-xl transition-all shadow-md shadow-green-500/10 hover:-translate-y-0.5">
                                     <i class="fa-solid fa-circle-check"></i> Pesanan Diterima
@@ -104,7 +104,7 @@
                     @else
                     <div class="bg-white border border-purple-100 rounded-xl p-4 text-xs text-slate-500">
                         <i class="fa-solid fa-clock mr-1.5 text-purple-400"></i> Nomor resi sedang disiapkan oleh penjual. Anda juga dapat langsung mengonfirmasi jika barang sudah sampai:
-                        <form action="{{ route('orders.complete', $order->id) }}" method="POST" class="mt-3" onsubmit="return confirm('Apakah Anda yakin barang sudah sampai dan diterima dengan baik?')">
+                        <form action="{{ route('orders.complete', $order->id) }}" method="POST" class="mt-3" data-confirm="Apakah Anda yakin barang sudah sampai dan diterima dengan baik?" data-confirm-btn="Ya, Selesai" data-confirm-color="#16a34a">
                             @csrf
                             <button type="submit" class="inline-flex items-center gap-1.5 bg-green-600 hover:bg-green-500 text-white font-bold text-xs px-4 py-2 rounded-xl transition-all">
                                 <i class="fa-solid fa-circle-check"></i> Pesanan Diterima

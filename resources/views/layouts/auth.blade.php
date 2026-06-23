@@ -62,9 +62,10 @@
         <div class="px-8 pt-8 pb-4 flex items-center justify-between flex-shrink-0">
             <a href="{{ route('home') }}" class="flex items-center gap-2 group">
                 <img src="{{ asset('images/logosipanen.png') }}" alt="SiPanen" class="h-9 w-auto">
+                <span class="text-xl font-extrabold text-slate-900 group-hover:text-green-600 transition-colors">SiPanen</span>
             </a>
             <a href="{{ route('home') }}"
-               class="hidden sm:inline-flex items-center gap-1.5 text-xs text-slate-500 hover:text-green-700 font-semibold transition-colors">
+               class="inline-flex items-center gap-1.5 text-xs text-slate-500 hover:text-green-700 font-semibold transition-colors">
                 <i class="fa-solid fa-arrow-left text-[10px]"></i> Kembali ke Beranda
             </a>
         </div>

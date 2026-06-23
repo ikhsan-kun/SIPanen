@@ -49,12 +49,12 @@
                 @php
                 $sc = match($order->status) {'pending'=>'bg-yellow-100 text-yellow-700','confirmed'=>'bg-blue-100 text-blue-700','diproses'=>'bg-indigo-100 text-indigo-700','dikirim'=>'bg-purple-100 text-purple-700','selesai'=>'bg-green-100 text-green-700','cancelled'=>'bg-red-100 text-red-700',default=>'bg-slate-100 text-slate-600'};
                 @endphp
-                <div class="px-6 py-4 flex items-center justify-between hover:bg-slate-50/50 transition-colors">
+                 <div class="px-6 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-slate-50/50 transition-colors">
                     <div>
                         <p class="font-mono font-semibold text-slate-700 text-xs">{{ $order->order_number }}</p>
                         <p class="text-xs text-slate-400 mt-0.5">{{ $order->created_at->format('d M Y, H:i') }} · {{ $order->items->count() }} produk</p>
                     </div>
-                    <div class="flex items-center gap-3">
+                    <div class="flex items-center justify-between sm:justify-end gap-3 w-full sm:w-auto">
                         <span class="text-xs font-semibold px-2.5 py-1 rounded-full {{ $sc }}">{{ $order->status_label }}</span>
                         <span class="font-bold text-slate-800 text-sm">Rp {{ number_format($order->total_amount,0,',','.') }}</span>
                         <a href="{{ route('admin.orders.show',$order->id) }}" class="text-green-600 hover:text-green-700 text-xs font-semibold">Detail →</a>

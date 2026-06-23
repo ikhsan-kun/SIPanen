@@ -18,7 +18,7 @@
 
 <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
     <div class="overflow-x-auto">
-        <table class="w-full text-sm">
+        <table class="w-full min-w-[700px] text-sm">
             <thead class="bg-slate-50">
                 <tr>
                     <th class="text-left px-6 py-3.5 text-xs font-semibold text-slate-500 uppercase tracking-wider">Pelanggan</th>

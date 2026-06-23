@@ -25,7 +25,7 @@
 
 <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
     <div class="overflow-x-auto">
-        <table class="w-full text-sm">
+        <table class="w-full min-w-[800px] text-sm">
             <thead class="bg-slate-50">
                 <tr>
                     <th class="text-left px-6 py-3.5 text-xs font-semibold text-slate-500 uppercase tracking-wider">Produk</th>
@@ -74,7 +74,7 @@
                             <a href="{{ route('admin.products.edit',$product->id) }}" class="p-2 rounded-lg text-slate-500 hover:bg-blue-50 hover:text-blue-600 transition-colors" title="Edit">
                                 <i class="fa-solid fa-pen-to-square text-sm"></i>
                             </a>
-                            <form action="{{ route('admin.products.destroy',$product->id) }}" method="POST" onsubmit="return confirm('Hapus produk ini?')">
+                            <form action="{{ route('admin.products.destroy',$product->id) }}" method="POST" data-confirm="Hapus produk ini? Tindakan ini tidak dapat dibatalkan." data-confirm-btn="Ya, Hapus" data-confirm-color="#ef4444">
                                 @csrf @method('DELETE')
                                 <button type="submit" class="p-2 rounded-lg text-slate-500 hover:bg-red-50 hover:text-red-600 transition-colors" title="Hapus">
                                     <i class="fa-solid fa-trash-can text-sm"></i>

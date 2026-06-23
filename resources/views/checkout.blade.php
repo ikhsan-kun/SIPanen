@@ -98,10 +98,12 @@
                             <div>
                                 <p class="font-bold text-slate-800 text-sm">Midtrans — Pembayaran Online Aman</p>
                                 <p class="text-xs text-slate-500 mt-1 leading-relaxed">Bayar dengan QRIS, GoPay, ShopeePay, OVO, Dana, Transfer Bank (BCA, Mandiri, BRI, BNI), atau Kartu Kredit/Debit langsung melalui payment gateway bersertifikat PCI-DSS.</p>
-                                <div class="flex items-center gap-3 mt-3">
-                                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/29/GoPay_logo.svg/200px-GoPay_logo.svg.png" alt="GoPay" class="h-5 object-contain opacity-80">
-                                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/QRIS_logo.svg/200px-QRIS_logo.svg.png" alt="QRIS" class="h-5 object-contain opacity-80">
-                                    <span class="text-[10px] text-slate-400 font-medium">+ banyak metode lainnya</span>
+                                <div class="flex flex-wrap items-center gap-1.5 mt-3">
+                                    <span class="text-[10px] font-bold px-2 py-0.5 bg-green-600/10 text-green-700 rounded-md border border-green-600/20 uppercase tracking-wider">QRIS</span>
+                                    <span class="text-[10px] font-bold px-2 py-0.5 bg-blue-500/10 text-blue-700 rounded-md border border-blue-500/20 uppercase tracking-wider">GoPay</span>
+                                    <span class="text-[10px] font-bold px-2 py-0.5 bg-slate-100 text-slate-600 rounded-md border border-slate-200 uppercase tracking-wider">ShopeePay</span>
+                                    <span class="text-[10px] font-bold px-2 py-0.5 bg-slate-100 text-slate-600 rounded-md border border-slate-200 uppercase tracking-wider">Transfer Bank</span>
+                                    <span class="text-[10px] text-slate-400 font-medium ml-1">+ Metode Lainnya</span>
                                 </div>
                             </div>
                         </div>

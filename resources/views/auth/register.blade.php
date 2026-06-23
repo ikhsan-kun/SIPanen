@@ -228,12 +228,15 @@ pwField.addEventListener('input', function() {
 });
 
 // Submit loading state
-document.getElementById('register-btn').addEventListener('click', function() {
-    const form = document.getElementById('register-form');
-    if (form.checkValidity()) {
-        this.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Memproses...';
-        this.disabled = true;
-    }
-});
+const registerForm = document.getElementById('register-form');
+const registerBtn  = document.getElementById('register-btn');
+if (registerForm && registerBtn) {
+    registerForm.addEventListener('submit', function() {
+        if (this.checkValidity()) {
+            registerBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Memproses...';
+            registerBtn.disabled  = true;
+        }
+    });
+}
 </script>
 @endpush

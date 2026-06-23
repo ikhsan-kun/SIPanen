@@ -86,7 +86,7 @@
             <a href="{{ route('admin.orders.index') }}" class="text-sm font-semibold text-green-600 hover:text-green-700 transition-colors">Lihat Semua →</a>
         </div>
         <div class="overflow-x-auto">
-            <table class="w-full text-sm">
+            <table class="w-full min-w-[800px] text-sm">
                 <thead class="bg-slate-50">
                     <tr>
                         <th class="text-left px-6 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">No. Pesanan</th>
