@@ -262,6 +262,14 @@ class DatabaseSeeder extends Seeder
             'total_amount' => 330000,
             'status' => 'confirmed',
             'payment_status' => 'paid',
+            'payment_method'       => 'midtrans',
+            'midtrans_order_id'    => 'EKI-PACKING-260607',
+            'recipient_name'       => 'Ikhsan Gilang',
+            'recipient_phone'      => '08987654321',
+            'shipping_address'     => 'Jl. Pemuda No. 45, Tegal',
+            'shipping_city'        => 'Tegal',
+            'shipping_province'    => 'Jawa Tengah',
+            'shipping_postal_code' => '52123',
             'created_at' => now()->subHour(),
         ]);
 
