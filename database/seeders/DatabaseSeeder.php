@@ -175,7 +175,7 @@ class DatabaseSeeder extends Seeder
             'unit' => 'pcs',
             'weight' => '12.0 kg',
             'material' => 'Besi Press Baja',
-            'image' => null, // Tanpa gambar default
+            'image' => "produk/gerobak.jpeg", // Tanpa gambar default
             'is_active' => true
         ]);
 
