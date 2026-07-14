@@ -334,11 +334,21 @@
             </div>
 
             {{-- Footer Bottom --}}
-            <div class="border-t border-white/10 pt-6 flex flex-col sm:flex-row justify-between items-center gap-3 text-xs text-gray-500">
+            <div class="border-t border-white/10 pt-6 flex flex-col sm:flex-row justify-between items-center gap-4 text-xs text-gray-500">
                 <p>© {{ date('Y') }} CV. Ekiindo Tegal. Hak cipta dilindungi undang-undang.</p>
-                <div class="flex items-center gap-4">
-                    <span class="flex items-center gap-1.5"><i class="fa-solid fa-lock text-green-500"></i> SSL Secured</span>
-                    <span class="flex items-center gap-1.5"><i class="fa-solid fa-shield-halved text-green-500"></i> PCI-DSS</span>
+                <div class="flex flex-col sm:flex-row items-center gap-4">
+                    <div class="flex items-center gap-3">
+                        <span class="flex items-center gap-1.5"><i class="fa-solid fa-lock text-green-500"></i> SSL Secured</span>
+                        <span class="flex items-center gap-1.5"><i class="fa-solid fa-shield-halved text-green-500"></i> PCI-DSS</span>
+                    </div>
+                    {{-- Logo UHN --}}
+                    <div class="flex items-center gap-2.5 border-l border-white/10 pl-4">
+                        <img src="{{ asset('uhn.png') }}" alt="Logo UHN" class="h-9 w-auto brightness-0 invert">
+                        <div class="leading-tight">
+                            <p class="text-white font-semibold text-[11px]">Universitas Harkat Negeri</p>
+                            <p class="text-gray-400 text-[10px]">Prodi Teknik Komputer</p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
