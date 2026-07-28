@@ -22,7 +22,14 @@ class Product extends Model
         parent::boot();
         static::creating(function ($product) {
             if (empty($product->slug)) {
-                $product->slug = Str::slug($product->name);
+                $baseSlug = Str::slug($product->name);
+                $slug = $baseSlug;
+                $counter = 1;
+                while (static::where('slug', $slug)->exists()) {
+                    $slug = $baseSlug . '-' . $counter;
+                    $counter++;
+                }
+                $product->slug = $slug;
             }
         });
     }

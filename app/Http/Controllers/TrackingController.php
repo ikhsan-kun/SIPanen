@@ -23,7 +23,7 @@ class TrackingController extends Controller
             return back()->with('error', 'Nomor resi belum diinput oleh penjual.');
         }
 
-        $trackingData = $this->fetchTrackingData($order->tracking_number);
+        $trackingData = $this->fetchTrackingData($order->tracking_number, $order->shipping_courier);
 
         return view('orders.tracking', compact('order', 'trackingData'));
     }
@@ -37,25 +37,24 @@ class TrackingController extends Controller
             return back()->with('error', 'Nomor resi belum diinput.');
         }
 
-        $trackingData = $this->fetchTrackingData($order->tracking_number);
+        $trackingData = $this->fetchTrackingData($order->tracking_number, $order->shipping_courier);
 
         return view('orders.tracking', compact('order', 'trackingData'));
     }
 
     /**
-     * Fetch tracking data from Binderbyte API or fallback to beautiful mockup data
+     * Fetch tracking data from Binderbyte API.
+     *
+     * @param string      $trackingNumber  Nomor AWB / resi pengiriman
+     * @param string|null $courier         Kode kurir yang disimpan admin (jne, jnt, sicepat, dll)
      */
-    protected function fetchTrackingData($trackingNumber)
+    protected function fetchTrackingData(string $trackingNumber, ?string $courier = null)
     {
-        $apiKey = env('BINDERBYTE_API_KEY');
-        
-        // Deteksi kurir berdasarkan awalan resi secara sederhana (default jne)
-        $courier = 'jne';
-        $tnLower = strtolower($trackingNumber);
-        if (str_contains($tnLower, 'jnt') || str_contains($tnLower, 'jp')) {
-            $courier = 'jnt';
-        } elseif (str_contains($tnLower, 'sicepat') || str_contains($tnLower, 'si')) {
-            $courier = 'sicepat';
+        $apiKey = config('services.binderbyte.api_key');
+
+        // Gunakan kurir dari database jika tersedia, fallback ke auto-detect
+        if (empty($courier)) {
+            $courier = $this->detectCourier($trackingNumber);
         }
 
         if (!$apiKey) {
@@ -70,7 +69,7 @@ class TrackingController extends Controller
         }
 
         try {
-            $response = Http::get("https://api.binderbyte.com/v1/track", [
+            $response = Http::timeout(10)->get("https://api.binderbyte.com/v1/track", [
                 'api_key' => $apiKey,
                 'courier' => $courier,
                 'awb'     => $trackingNumber
@@ -107,6 +106,7 @@ class TrackingController extends Controller
             }
         } catch (\Exception $e) {
             // Koneksi bermasalah
+            \Illuminate\Support\Facades\Log::error('Tracking API error: ' . $e->getMessage());
         }
 
         return [
@@ -117,5 +117,37 @@ class TrackingController extends Controller
             'status_paket' => 'KONEKSI ERROR',
             'history'      => []
         ];
+    }
+
+    /**
+     * Auto-detect courier berdasarkan pola nomor resi (fallback jika admin tidak memilih kurir).
+     * Ini hanya perkiraan kasar — sebaiknya admin selalu memilih kurir secara eksplisit.
+     */
+    protected function detectCourier(string $trackingNumber): string
+    {
+        $tn = strtoupper(trim($trackingNumber));
+
+        // J&T Express: biasanya diawali JP, JX, JA, 820, 822
+        if (preg_match('/^(JP|JX|JA|82[02])/', $tn)) {
+            return 'jnt';
+        }
+
+        // SiCepat: biasanya diawali 000, 001, 002, 003, 004
+        if (preg_match('/^00[0-4]/', $tn)) {
+            return 'sicepat';
+        }
+
+        // Pos Indonesia: biasanya diawali dengan huruf dan berakhir ID
+        if (preg_match('/^[A-Z]{2}\d+ID$/i', $tn)) {
+            return 'pos';
+        }
+
+        // Anteraja: biawali 1
+        if (preg_match('/^1\d{11,}$/', $tn)) {
+            return 'anteraja';
+        }
+
+        // Default: JNE (kurir paling umum di Indonesia)
+        return 'jne';
     }
 }

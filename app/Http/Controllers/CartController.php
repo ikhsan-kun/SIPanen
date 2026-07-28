@@ -10,6 +10,35 @@ class CartController extends Controller
     public function index()
     {
         $cart  = session()->get('cart', []);
+
+        // Sync prices, stock, and images from database to prevent stale session data
+        $updated = false;
+        foreach ($cart as $id => &$item) {
+            $product = Product::find($id);
+            if (!$product || !$product->is_active) {
+                unset($cart[$id]);
+                $updated = true;
+                continue;
+            }
+            if ($item['price'] != $product->price || $item['stock'] != $product->stock || $item['image'] != $product->image) {
+                $item['price'] = $product->price;
+                $item['stock'] = $product->stock;
+                $item['image'] = $product->image;
+                $item['name']  = $product->name;
+                $updated = true;
+            }
+            // Cap quantity to available stock
+            if ($item['quantity'] > $product->stock) {
+                $item['quantity'] = max(1, $product->stock);
+                $updated = true;
+            }
+        }
+        unset($item); // break reference
+
+        if ($updated) {
+            session()->put('cart', $cart);
+        }
+
         $total = collect($cart)->sum(fn($item) => $item['price'] * $item['quantity']);
         return view('cart', compact('cart', 'total'));
     }

@@ -62,10 +62,10 @@
                         </p>
                     </div>
 
-                    @if($trackingData['status'] === 'demo')
+                    @if($trackingData['status'] === 'error' && str_contains($trackingData['message'] ?? '', 'API Key'))
                     <div class="bg-amber-50 border border-amber-200 text-amber-800 text-xs p-4 rounded-xl space-y-1.5">
-                        <p class="font-semibold"><i class="fa-solid fa-circle-info mr-1"></i> Mode Simulasi (Demo)</p>
-                        <p class="text-amber-700/95 leading-relaxed">Anda melihat data simulasi pergerakan paket. Untuk menghubungkan ke pelacakan kurir nyata, silakan daftarkan API Key Binderbyte Anda di file <code>.env</code>.</p>
+                        <p class="font-semibold"><i class="fa-solid fa-circle-info mr-1"></i> Konfigurasi Belum Lengkap</p>
+                        <p class="text-amber-700/95 leading-relaxed">Fitur pelacakan resi memerlukan konfigurasi API Key Binderbyte di server. Silakan hubungi admin.</p>
                     </div>
                     @endif
                 </div>

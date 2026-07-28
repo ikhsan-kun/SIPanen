@@ -13,7 +13,8 @@ class Order extends Model
         'midtrans_snap_token', 'midtrans_transaction_id',
         'recipient_name', 'recipient_phone', 'shipping_address',
         'shipping_city', 'shipping_province', 'shipping_postal_code',
-        'notes', 'tracking_number', 'paid_at', 'shipped_at', 'completed_at',
+        'notes', 'tracking_number', 'shipping_courier',
+        'paid_at', 'shipped_at', 'completed_at',
     ];
 
     protected $casts = [

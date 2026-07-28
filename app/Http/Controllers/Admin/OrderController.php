@@ -19,8 +19,12 @@ class OrderController extends Controller
             $query->where('payment_status', $request->payment_status);
         }
         if ($request->filled('search')) {
-            $query->where('order_number', 'like', '%' . $request->search . '%')
-                  ->orWhereHas('user', fn($q) => $q->where('name', 'like', '%' . $request->search . '%'));
+            // FIX: Wrap search conditions in a where() closure to prevent OR breaking other filters
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('order_number', 'like', '%' . $search . '%')
+                  ->orWhereHas('user', fn($uq) => $uq->where('name', 'like', '%' . $search . '%'));
+            });
         }
 
         $orders = $query->orderBy('created_at', 'desc')->paginate(15);
@@ -37,15 +41,21 @@ class OrderController extends Controller
     public function updateStatus(Request $request, Order $order)
     {
         $request->validate([
-            'status'          => 'required|in:pending,confirmed,diproses,dikirim,selesai,cancelled',
-            'tracking_number' => 'nullable|required_if:status,dikirim|string|max:100',
+            'status'            => 'required|in:pending,confirmed,diproses,dikirim,selesai,cancelled',
+            'tracking_number'   => 'nullable|required_if:status,dikirim|string|max:100',
+            'shipping_courier'  => 'nullable|required_if:status,dikirim|string|max:50',
         ]);
 
         $data = ['status' => $request->status];
 
-        // Tracking number: only set when shipping, clear if status reverts
-        if ($request->status === 'dikirim' && $request->filled('tracking_number')) {
-            $data['tracking_number'] = $request->tracking_number;
+        // Tracking number & courier: set when shipping
+        if ($request->status === 'dikirim') {
+            if ($request->filled('tracking_number')) {
+                $data['tracking_number'] = $request->tracking_number;
+            }
+            if ($request->filled('shipping_courier')) {
+                $data['shipping_courier'] = $request->shipping_courier;
+            }
         }
 
         // Timestamps: only set once, never overwrite
@@ -54,6 +64,15 @@ class OrderController extends Controller
         }
         if ($request->status === 'selesai' && !$order->completed_at) {
             $data['completed_at'] = now();
+        }
+
+        // Restore stock when order is cancelled (only once, when transitioning TO cancelled)
+        if ($request->status === 'cancelled' && $order->status !== 'cancelled') {
+            foreach ($order->items as $item) {
+                if ($item->product) {
+                    $item->product->increment('stock', $item->quantity);
+                }
+            }
         }
 
         $order->update($data);
@@ -98,6 +117,14 @@ class OrderController extends Controller
             } elseif ($transactionStatus === 'pending') {
                 $order->update(['payment_status' => 'pending_confirmation']);
             } elseif (in_array($transactionStatus, ['deny', 'expire', 'cancel'])) {
+                // Restore stock when payment fails (only if not already cancelled)
+                if ($order->status !== 'cancelled') {
+                    foreach ($order->items as $item) {
+                        if ($item->product) {
+                            $item->product->increment('stock', $item->quantity);
+                        }
+                    }
+                }
                 $order->update([
                     'payment_status' => 'failed',
                     'status'         => 'cancelled',

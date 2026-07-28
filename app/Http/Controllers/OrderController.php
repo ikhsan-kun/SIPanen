@@ -249,6 +249,14 @@ class OrderController extends Controller
             } elseif ($transactionStatus === 'pending') {
                 $order->update(['payment_status' => 'pending_confirmation']);
             } elseif (in_array($transactionStatus, ['deny', 'expire', 'cancel'])) {
+                // Restore stock when payment fails (only if not already cancelled)
+                if ($order->status !== 'cancelled') {
+                    foreach ($order->items as $item) {
+                        if ($item->product) {
+                            $item->product->increment('stock', $item->quantity);
+                        }
+                    }
+                }
                 $order->update([
                     'payment_status' => 'failed',
                     'status'         => 'cancelled',
@@ -320,6 +328,14 @@ class OrderController extends Controller
             // Midtrans is awaiting payment (e.g. VA waiting to be transferred)
             $order->update(['payment_status' => 'pending_confirmation']);
         } elseif (in_array($transactionStatus, ['deny', 'expire', 'cancel'])) {
+            // Restore stock when payment fails via callback (only if not already cancelled)
+            if ($order->status !== 'cancelled') {
+                foreach ($order->items as $item) {
+                    if ($item->product) {
+                        $item->product->increment('stock', $item->quantity);
+                    }
+                }
+            }
             $order->update([
                 'payment_status' => 'failed',
                 'status'         => 'cancelled',

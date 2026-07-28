@@ -81,7 +81,7 @@
                     {{-- Description --}}
                     <div class="flex-1 min-w-0">
                         <p class="text-sm font-semibold text-slate-700 truncate">
-                            {{ $order->items->first()->product->name ?? 'Produk' }}
+                            {{ $order->items->first()?->product?->name ?? 'Produk' }}
                             @if($order->items->count() > 1)
                             <span class="font-normal text-slate-400">+{{ $order->items->count()-1 }} produk lainnya</span>
                             @endif

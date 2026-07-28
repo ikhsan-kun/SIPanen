@@ -80,8 +80,18 @@
                         <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">Nomor Resi Pengiriman <span class="text-red-500">*</span></label>
                         <input type="text" name="tracking_number"
                                value="{{ old('tracking_number', $order->tracking_number) }}"
-                               placeholder="Contoh: JNE12345678"
+                               placeholder="Contoh: 0112345678901"
                                class="w-full px-4 py-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-green-500">
+                    </div>
+                    <div id="courier-input-wrapper" class="{{ $order->status === 'dikirim' ? '' : 'hidden' }}">
+                        <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">Jasa Ekspedisi <span class="text-red-500">*</span></label>
+                        <select name="shipping_courier"
+                                class="w-full px-4 py-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 bg-white">
+                            <option value="">— Pilih Kurir —</option>
+                            @foreach(['jne' => 'JNE', 'jnt' => 'J&T Express', 'sicepat' => 'SiCepat', 'pos' => 'Pos Indonesia', 'anteraja' => 'AnterAja', 'ninja' => 'Ninja Xpress', 'lion' => 'Lion Parcel', 'tiki' => 'TIKI'] as $code => $name)
+                            <option value="{{ $code }}" {{ old('shipping_courier', $order->shipping_courier) === $code ? 'selected' : '' }}>{{ $name }}</option>
+                            @endforeach
+                        </select>
                     </div>
                 </div>
                 <div class="flex justify-end">
@@ -265,9 +275,12 @@
 document.addEventListener('DOMContentLoaded', function () {
     const statusSelect       = document.getElementById('status-select');
     const trackingWrapper    = document.getElementById('tracking-input-wrapper');
+    const courierWrapper     = document.getElementById('courier-input-wrapper');
 
     statusSelect.addEventListener('change', function () {
-        trackingWrapper.classList.toggle('hidden', this.value !== 'dikirim');
+        const isShipping = this.value === 'dikirim';
+        trackingWrapper.classList.toggle('hidden', !isShipping);
+        courierWrapper.classList.toggle('hidden', !isShipping);
     });
 });
 </script>

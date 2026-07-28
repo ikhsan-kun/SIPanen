@@ -19,9 +19,8 @@ Route::get('/produk/{slug}', [HomeController::class, 'productDetail'])->name('pr
 Route::get('/tentang-kami', [HomeController::class, 'about'])->name('about');
 Route::get('/kontak', [HomeController::class, 'contact'])->name('contact');
 
-// Midtrans webhook — exempt from CSRF (already handled via signature verification)
-Route::post('/midtrans/callback', [OrderController::class, 'midtransCallback'])
-    ->withoutMiddleware([\App\Http\Middleware\VerifyCsrfToken::class]);
+// Midtrans webhook — CSRF excluded via bootstrap/app.php validateCsrfTokens()
+Route::post('/midtrans/callback', [OrderController::class, 'midtransCallback']);
 
 // ── Auth Routes ────────────────────────────────────────────────────────────────
 Route::middleware('guest')->group(function () {
